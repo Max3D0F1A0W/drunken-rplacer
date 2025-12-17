@@ -1,0 +1,16 @@
+{
+	"manifest_version": 3,
+	"name": "Drunken rplacer",
+	"version": "1.0",
+	"content_scripts": [{
+		"matches": ["https://rplace.live/*"],
+		"js": ["content-script.js"]
+	}],
+	"web_accessible_resources": [{
+		"resources": ["template.png", "placement.json"],
+		"matches": ["https://rplace.live/*"]
+	}],
+	"host_permissions": ["https://rplace.live/*"],
+	"permissions": ["debugger", "tabs"],
+	"background": {"service_worker": "service-worker.js"}
+}
