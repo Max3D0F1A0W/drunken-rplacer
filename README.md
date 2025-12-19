@@ -1,7 +1,7 @@
 <h1 align="center">
   <img style="width: 10%" stlye="" src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Place_2022.svg"/>
 
-  Drunken rplacer
+  Experimental rplacer
 </h1>
 
 <h2 align="center">
@@ -12,12 +12,12 @@
   Educational purposes, people, educational purposes.
 
   This bot is still in development and should not be used in harmful ways, ruining others' work for your own benefits. It's main purpose is researching rplace.live's vulnerabilities and reporting them to the developer team.
+
+  This is the experimental branch containing features that haven't been fully tested.
 </p>
 
 ## To-do list:
-1. Make it sober
-2. Figure out teleportation
-3. Optimize
+1. Optimize
 
 ## Usage:
 1. Clone the repo or download its code as a ZIP-file and unpack it in any directory
