@@ -1,6 +1,6 @@
 let canvas = hCaptchaMenu = turnstileMenu = undefined;
-let canvasCtx = palette = placement = template = undefined;
-let paletteTimeout = turnstileTimeout = noGameTimeout = undefined;
+let canvasCtx = canvasBackup = palette = placement = template = undefined;
+let paletteTimeout = turnstileTimeout = noGameTimeout = sizeTimeout = undefined;
 let mainInterval = failInterval = undefined;
 let cooledDown = false;
 let failCount = 0;
@@ -69,6 +69,9 @@ window.addEventListener("palette", async (paletteEvent) => {
 		chrome.runtime.sendMessage("move-left");
 
 		mainInterval = setInterval(async () => {
+			if (canvasBackup)
+				return;
+
 			if (placement.unattended) {
 				if (hCaptchaMenu.getAttribute("open")) {
 					chrome.runtime.sendMessage("restart");
@@ -89,10 +92,32 @@ window.addEventListener("palette", async (paletteEvent) => {
 			} else if (hCaptchaMenu.getAttribute("open") || turnstileMenu.getAttribute("open"))
 				return;
 
-			const canvasView = new DataView(canvasCtx.getImageData(0, 0, canvas.width, canvas.height).data.buffer);
+			const canvasImageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height)
+			const canvasView = new DataView(canvasImageData.data.buffer);
 
 			if (lockIn.x === undefined) {
 				switch (placement.method) {
+					case "random":
+						// Collect all valid pixels that need to be placed
+						const validPixels = [];
+						
+						for (let y = 0; y < img.height; y++) {
+							for (let x = 0; x < img.width; x++) {
+								if ((template.getUint32(4 * (y * img.width + x)) & 0xFF) === 0xFF && 
+									template.getUint32(4 * (y * img.width + x)) !== canvasView.getUint32(4 * ((y + placement.y) * canvas.width + x + placement.x))) {
+									validPixels.push({x: x + placement.x, y: y + placement.y});
+								}
+							}
+						}
+						
+						// Select a random pixel from the valid pixels
+						if (validPixels.length > 0) {
+							const randomIndex = Math.floor(Math.random() * validPixels.length);
+							lockIn.x = validPixels[randomIndex].x;
+							lockIn.y = validPixels[randomIndex].y;
+						}
+						
+						break;
 					case "nearest-spiral":
 						const x = Math.min(Math.max(position.x - placement.x, 0), img.width - 1);
 						const y = Math.min(Math.max(position.y - placement.y, 0), img.height - 1);
@@ -149,11 +174,36 @@ window.addEventListener("palette", async (paletteEvent) => {
 						document.activeElement.blur();
 
 					if (xdiff || ydiff) {
-						for (let i = 0; i < Math.min(Math.abs(xdiff), 1); i++)
-							chrome.runtime.sendMessage(`move-${xdiff > 0 ? "right" : "left"}`)
+						switch (placement.movement) {
+							case "sizeWarp":
+								const params = new URLSearchParams(window.location.search);
 
-						for (let i = 0; i < Math.min(Math.abs(ydiff), 1); i++)
-							chrome.runtime.sendMessage(`move-${ydiff > 0 ? "down" : "up"}`)
+								params.set("x", String(lockIn.x));
+								params.set("y", String(lockIn.y));
+
+								const newUrl = `${window.location.pathname}?${params.toString()}`;
+
+								window.history.pushState({}, "", newUrl);
+
+								const sizeEvent = new CustomEvent("size", {
+									detail: {width: canvas.width, height: canvas.height},
+									bubbles: true,
+									composed: true
+								});
+
+								canvasBackup = canvasImageData;
+
+								window.dispatchEvent(sizeEvent);
+
+								break;
+							case "arrowKeys":
+							default:
+								for (let i = 0; i < Math.min(Math.abs(xdiff), 1); i++)
+									chrome.runtime.sendMessage(`move-${xdiff > 0 ? "right" : "left"}`)
+
+								for (let i = 0; i < Math.min(Math.abs(ydiff), 1); i++)
+									chrome.runtime.sendMessage(`move-${ydiff > 0 ? "down" : "up"}`)
+						}
 					} else if (!cooledDown) {
 						chrome.runtime.sendMessage(`push-${palette.get(template.getUint32(4 * ((lockIn.y - placement.y) * img.width + lockIn.x - placement.x)))}`);
 						chrome.runtime.sendMessage("push-enter");
@@ -189,6 +239,12 @@ window.addEventListener("disconnect", async (paletteEvent) => {
 		failInterval = undefined;
 	}
 
+	if (sizeTimeout !== undefined) {
+		clearTimeout(sizeTimeout);
+
+		sizeTimeout = undefined;
+	}
+
 	chrome.runtime.sendMessage("restart");
 });
 
@@ -208,6 +264,16 @@ window.addEventListener("pos", async (posEvent) => {
 window.addEventListener("rejectedpixel", async (pixelsEvent) => {
 	if (++failCount === 3)
 		chrome.runtime.sendMessage("restart");
+});
+
+window.addEventListener("size", async (sizeEvent) => {
+	sizeTimeout = setTimeout(async () => {
+		if (canvasBackup) {
+			canvasCtx.putImageData(canvasBackup, 0, 0);
+			
+			canvasBackup = undefined;
+		}
+	});
 });
 
 failInterval = setInterval(() => {
