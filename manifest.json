@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
-	"name": "Drunken rplacer",
-	"version": "1.0",
+	"name": "Experimental rplacer",
+	"version": "0.1",
 	"content_scripts": [{
 		"matches": ["https://rplace.live/*"],
 		"js": ["content-script.js"]
