@@ -15,9 +15,7 @@
 </p>
 
 ## To-do list:
-1. Make it sober
-2. Figure out teleportation
-3. Optimize
+1. Optimize
 
 ## Usage:
 1. Clone the repo or download its code as a ZIP-file and unpack it in any directory
