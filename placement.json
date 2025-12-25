@@ -1,1 +1,10 @@
-{"x": 378, "y": 0, "unattended": true, "method": "nearest-spiral"}
+{
+	"x": 378,
+	"y": 0,
+	"image": "template.png",
+	"method": "random",
+	"movement": "sizeWarp",
+	"unattended": true,
+	"pauseWhenChatting": true,
+	"fixCanvas": true
+}
