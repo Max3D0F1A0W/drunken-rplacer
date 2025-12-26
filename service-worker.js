@@ -15,33 +15,27 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 		return;
 	}
 
-	try {
-		const actions = message.split("-");
+	const actions = message.split("-");
 
-		switch (actions[0]) {
-			case "move":
-				chrome.debugger.sendCommand({tabId: sender.tab.id}, "Input.dispatchKeyEvent", {
-					type: "keyDown",
-					code: "Arrow" + actions[1][0].toUpperCase() + actions[1].slice(1),
-					key: "Arrow" + actions[1][0].toUpperCase() + actions[1].slice(1)
-				});
+	switch (actions[0]) {
+		case "move":
+			await chrome.debugger.sendCommand({tabId: sender.tab.id}, "Input.dispatchKeyEvent", {
+				type: "keyDown",
+				code: "Arrow" + actions[1][0].toUpperCase() + actions[1].slice(1),
+				key: "Arrow" + actions[1][0].toUpperCase() + actions[1].slice(1)
+			});
 
-				break;
-			case "push":
-				chrome.debugger.sendCommand({tabId: sender.tab.id}, "Input.dispatchKeyEvent", {
-					type: "keyDown",
-					code: actions[1].length < 2 ? actions[1] : actions[1][0].toUpperCase() + actions[1].slice(1),
-					key: actions[1].length < 2 ? actions[1] : actions[1][0].toUpperCase() + actions[1].slice(1)
-				});
+			break;
+		case "push":
+			await chrome.debugger.sendCommand({tabId: sender.tab.id}, "Input.dispatchKeyEvent", {
+				type: "keyDown",
+				code: actions[1].length < 2 ? actions[1] : actions[1][0].toUpperCase() + actions[1].slice(1),
+				key: actions[1].length < 2 ? actions[1] : actions[1][0].toUpperCase() + actions[1].slice(1)
+			});
 
-				break;
-			case "restart":
-				chrome.tabs.reload(sender.tab.id/*, {bypassCache: true}*/);
-		}
-	} catch (error) {
-		sendResponse(error);
-
-		throw error;
+			break;
+		case "restart":
+			await chrome.tabs.reload(sender.tab.id);
 	}
 });
 

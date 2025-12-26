@@ -8,6 +8,7 @@ let failCount = 0;
 
 const position = {x: undefined, y: undefined};
 const lockIn = {x: undefined, y: undefined};
+const pixelPlace = {position: undefined, colour: undefined};
 
 async function act() {
 	if (!canvasView || !placement || (placement.pauseWhenChatting && document.activeElement === messageInput) || canvasBackup)
@@ -146,8 +147,11 @@ async function act() {
 				if (palette.get(col2place) === undefined)
 					throw new Error(`Colour ${col2place.toString(16)} not found in palette!`);
 
-				if (!((await chrome.runtime.sendMessage(`push-${palette.get(col2place)}`)) instanceof Error) && !((await chrome.runtime.sendMessage("push-enter")) instanceof Error))
-					canvasView.setUint32(4 * (lockIn.y * canvas.width + lockIn.x), col2place);
+				await chrome.runtime.sendMessage(`push-${palette.get(col2place)}`);
+				await chrome.runtime.sendMessage("push-enter");
+				
+				pixelPlace.position = 4 * (lockIn.y * canvas.width + lockIn.x);
+				pixelPlace.colour = col2place;
 			}
 		}
 	}
@@ -234,6 +238,15 @@ window.addEventListener("disconnect", async (disconnectEvent) => chrome.runtime.
 
 window.addEventListener("cooldownstart", async (cooldownStartEvent) => {
 	cooledDown = cooldownStartEvent.detail.onCooldown;
+
+	if (cooledDown) {
+		if (pixelPlace.position !== undefined && pixelPlace.colour !== undefined) {
+			canvasView.setUint32(pixelPlace.position, pixelPlace.colour);
+
+			pixelPlace.position = undefined;
+			pixelPlace.colour = undefined;
+		}
+	}
 });
 
 window.addEventListener("cooldownend", async (cooldownEndEvent) => {
