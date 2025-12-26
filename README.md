@@ -9,9 +9,9 @@
 </h2>
 
 <p align="center">
-  Educational purposes, people, educational purposes.
+  Educational purposes, people, educational purposes. This repository is a public report on researching rplace.live's vulnerabilities.
 
-  This bot is still in development and should not be used in harmful ways, ruining others' work for your own benefits. It's main purpose is researching rplace.live's vulnerabilities and reporting them to the developer team.
+  This bot is no longer in development and no one really cares what you're going to use it for. Feel free to fork under a 
 </p>
 
 ## Usage:
